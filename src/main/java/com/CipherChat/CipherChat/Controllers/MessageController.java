@@ -3,8 +3,10 @@ package com.CipherChat.CipherChat.Controllers;
 import com.CipherChat.CipherChat.Repositories.MessageRepository;
 import com.CipherChat.CipherChat.Models.Message;
 import com.CipherChat.CipherChat.Repositories.UserRepository;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -20,12 +22,21 @@ public class MessageController {
     @Autowired
     UserRepository UserRepo;
 
+    @GetMapping("/getChats/{userId}")
+    public ResponseEntity<List<Document>> getUserChats(@PathVariable String userId) {
+        System.out.println(userId);
+        // Call the aggregation method and get the result
+        List<Document> chatSummaries = MessageRepo.getChatSummaries(userId);
+        return ResponseEntity.ok(chatSummaries);  // Spring Boot will automatically convert to JSON
+    }
+
+
     @GetMapping("/getConversation/{user1Id}/{user2Id}")
-    public List<Message> getConversation(@PathVariable String user1Id, @PathVariable String user2Id) {
+    public ResponseEntity<List<Message>> getConversation(@PathVariable String user1Id, @PathVariable String user2Id) {
         if(user1Id.equals(user2Id) || !UserRepo.existsById(user1Id) || !UserRepo.existsById(user2Id)){
             throw new ResponseStatusException(HttpStatus.NOT_FOUND);
         }
-        return MessageRepo.findConversation(user1Id, user2Id);
+        return ResponseEntity.ok(MessageRepo.findConversation(user1Id, user2Id));
     }
 
     @PostMapping("/newMessage")
